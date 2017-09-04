@@ -202,3 +202,113 @@ unique, counts = np.unique(labels, return_counts=True)
 unique_counts = np.asarray((unique, counts)).T
 
 print unique_counts[:,1:]
+
+#Showing the DBSCAN result with the default epsilon and minimum samples configuration
+#Bar chart
+plt.figure(figsize=(15,10))
+plt.bar(unique_counts[:,:1], unique_counts[:,1:])
+plt.xlabel("Cluster Number")
+plt.ylabel("Amount of Users in Cluster")
+#plt.text(unique_counts[:,:1], unique_counts[:,1:], str(unique_counts[:,1:]))
+
+for a,b in zip(unique_counts[:,:1], unique_counts[:,1:]):
+    plt.text(a, b, str(b))
+    
+#Scatter plot
+%matplotlib inline
+plt.figure(figsize=(20,10))
+
+# Black removed and is used for noise instead.
+unique_labels = set(labels)
+colors = plt.cm.Spectral(np.linspace(0, 1, len(unique_labels)))
+for k, col in zip(unique_labels, colors):
+    if k == -1:
+         # Black used for noise.
+        col = 'k'
+ 
+    class_member_mask = (labels == k)
+ 
+    xy = X[class_member_mask & core_samples_mask]
+    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=col,
+              markeredgecolor='k', markersize=14)
+ 
+    xy = X[class_member_mask & ~core_samples_mask]
+    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=col,
+              markeredgecolor='k', markersize=6)
+ 
+plt.title('Estimated number of clusters: %d' % n_clusters_)
+plt.show()
+
+#Using a more optimal setting for the DBSCAN algorithm
+X = StandardScaler().fit_transform(reduced_data)
+
+db = DBSCAN(eps=0.095, min_samples=10).fit(X)
+core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+core_samples_mask[db.core_sample_indices_] = True
+labels = db.labels_
+
+# Number of clusters in labels, ignoring noise if present.
+n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+n_clusters_
+
+unique, counts = np.unique(labels, return_counts=True)
+
+unique_counts = np.asarray((unique, counts)).T
+
+print unique_counts[:,1:]
+
+#Seeing the scatter plot result
+%matplotlib inline
+plt.figure(figsize=(20,10))
+
+# Black removed and is used for noise instead.
+unique_labels = set(labels)
+colors = plt.cm.Spectral(np.linspace(0, 1, len(unique_labels)))
+for k, col in zip(unique_labels, colors):
+    if k == -1:
+         # Black used for noise.
+        col = 'k'
+ 
+    class_member_mask = (labels == k)
+ 
+    xy = X[class_member_mask & core_samples_mask]
+    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=col,
+              markeredgecolor='k', markersize=14)
+ 
+    xy = X[class_member_mask & ~core_samples_mask]
+    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=col,
+              markeredgecolor='k', markersize=6)
+ 
+plt.title('Estimated number of clusters: %d' % n_clusters_)
+plt.show()
+
+#Scatter plot result without noise
+%matplotlib inline
+plt.figure(figsize=(20,10))
+
+# Black removed and is used for noise instead.
+unique_labels = set(labels[labels>=0])
+colors = plt.cm.Spectral(np.linspace(0, 1, len(unique_labels)))
+for k, col in zip(unique_labels, colors):
+    if k == -1:
+         # Black used for noise.
+        col = 'k'
+ 
+    class_member_mask = (labels == k)
+ 
+    xy = X[class_member_mask & core_samples_mask]
+    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=col,
+              markeredgecolor='k', markersize=14)
+ 
+    xy = X[class_member_mask & ~core_samples_mask]
+    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=col,
+              markeredgecolor='k', markersize=6)
+ 
+plt.title('Estimated number of clusters: %d' % n_clusters_)
+plt.show()
+
+
+
+
+
+plt.show()
