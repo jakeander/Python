@@ -14,4 +14,25 @@ try:
 except:
     print "Is the data missing?"
 
+#Taking a quick look at the data after it was imported
 data.info()
+
+#Seeing the counts of values in some basick demographic variables
+data[['ORIENTATIONcode','RELIGIONcode', 'EDUCATIONcode']].apply(pd.value_counts)
+
+#Converting all the variables to a number value and viewing what it looks like
+data = data.apply(pd.to_numeric, errors="coerce")
+data.info()
+data.head()
+data.describe()
+
+#Removing the variables with NaN's so it is a completely equal comparison between the benchmark model and the final model
+data = data.dropna()
+len(data)
+print "The dataset from Sapio now has {} users for the analysis.".format(len(data))
+
+#Filtering the dataset down to only include the linguistic summaries with more than 50 words
+display(data.head())
+data = data[data['WordCount'] > 50]
+display(data.head())
+print "The dataset from Sapio now has {} users for the analysis.".format(len(data))
