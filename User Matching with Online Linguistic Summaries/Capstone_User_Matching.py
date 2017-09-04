@@ -13,3 +13,5 @@ try:
     print "The dataset from Sapio has {} users with {} features each.".format(*data.iloc[:,1:].shape)
 except:
     print "Is the data missing?"
+
+data.info()
