@@ -307,8 +307,92 @@ for k, col in zip(unique_labels, colors):
 plt.title('Estimated number of clusters: %d' % n_clusters_)
 plt.show()
 
+#Bar chart distribution of the users in the clusters
+unique, counts = np.unique(labels[labels>=0], return_counts=True)
 
+unique_counts = np.asarray((unique, counts)).T
 
+plt.figure(figsize=(15,10))
+plt.bar(unique_counts[:,:1], unique_counts[:,1:])
+plt.xlabel("Cluster Number")
+plt.ylabel("Amount of Users in Cluster")
+plt.xticks(unique_counts[:,:1])
 
+for a,b in zip(unique_counts[:,:1], unique_counts[:,1:]):
+    plt.text(a, b, str(b))
 
 plt.show()
+
+#Creating a training and test set
+from sklearn.model_selection import train_test_split
+X_train, X_test = train_test_split(X, test_size=0.20, random_state=15)
+
+#Import modules for kmeans clustering
+from sklearn import mixture
+from sklearn.metrics import silhouette_score
+from sklearn.cluster import KMeans
+
+range_of_clusters = [2,3,4,5,6,7,8,9,10]
+
+#Showing the silhouette score for the entire dataset
+
+for n_clusters in range_of_clusters:
+    clusterer = KMeans(n_clusters=n_clusters)
+    clusterer.fit(X)
+
+    preds = clusterer.predict(X)
+
+    centers = clusterer.cluster_centers_
+
+    score = silhouette_score(X, preds)
+    print "For n_clusters = {}. The average silhouette_score is : {}".format(n_clusters, score)
+    
+#Finding the silhouette score for the training set
+for n_clusters in range_of_clusters:
+    clusterer = KMeans(n_clusters=n_clusters)
+    clusterer.fit(X_train)
+
+    preds = clusterer.predict(X_train)
+
+    centers = clusterer.cluster_centers_
+
+    score = silhouette_score(X_train, preds)
+    print "For n_clusters = {}. The average silhouette_score is : {}".format(n_clusters, score)
+
+#Finding the silhouette score for the test set
+for n_clusters in range_of_clusters:
+    clusterer = KMeans(n_clusters=n_clusters)
+    clusterer.fit(X_test)
+
+    preds = clusterer.predict(X_test)
+
+    centers = clusterer.cluster_centers_
+
+    score = silhouette_score(X_test, preds)
+    print "For n_clusters = {}. The average silhouette_score is : {}".format(n_clusters, score)
+
+#Using the optimal amount of clusters based on the silhouette scores
+clusterer = KMeans(n_clusters=3)
+clusterer.fit(X)
+preds = clusterer.predict(X)
+centers = clusterer.cluster_centers_
+
+#Kmeans result
+X1 = pd.DataFrame(X, columns = ['Dimension 1', 'Dimension 2'])
+cluster_results(X1, preds, centers)
+
+#Looking at the number of users in each of the clusters from the kmeans result
+unique, counts = np.unique(clusterer.labels_, return_counts=True)
+
+print np.asarray((unique, counts)).T
+centers
+
+#Looking at the true centers of the Kmeans cluster result
+true_centers = pca.inverse_transform(centers)
+
+segments = ['Segment {}'.format(i) for i in range(0,len(centers))]
+true_centers = pd.DataFrame(true_centers, columns = good_data.keys())
+true_centers.index = segments
+display(true_centers)
+
+good_data.describe().loc[['mean']]
