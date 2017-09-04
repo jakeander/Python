@@ -90,3 +90,115 @@ plt.xticks(size = 20)
 plt.yticks(size = 20)
 plt.show()
 
+#Creating the benchmark model with DBSCAN
+#Seeing counts of the gender variable
+data['GENDERCODED'].value_counts()
+
+#Seeing the counts of the sexual orientation variable
+data['ORIENTATIONcode'].value_counts()
+
+# Import modules for DBSCAN
+from sklearn import mixture
+from sklearn import metrics
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import StandardScaler
+
+naive_vars = ['GENDERCODED', 'ORIENTATIONcode']
+naive_data = data[naive_vars]
+
+#Building the naive DBSCAN clustering
+db = DBSCAN().fit(naive_data)
+core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+core_samples_mask[db.core_sample_indices_] = True
+labels = db.labels_ 
+
+n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+
+X = StandardScaler().fit_transform(naive_data)
+
+print('Estimated number of clusters: %d' % n_clusters_)
+
+#DBSCAN clustering visual for the benchmark model
+import matplotlib.pyplot as plt
+
+# Black removed and is used for noise instead.
+unique_labels = set(labels)
+colors = [plt.cm.Spectral(each)
+          for each in np.linspace(0, 1, len(unique_labels))]
+for k, col in zip(unique_labels, colors):
+    if k == -1:
+        # Black used for noise.
+        col = [0, 0, 0, 1]
+
+    class_member_mask = (labels == k)
+
+    xy = X[class_member_mask & core_samples_mask]
+    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+             markeredgecolor='k', markersize=14)
+
+    xy = X[class_member_mask & ~core_samples_mask]
+    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+             markeredgecolor='k', markersize=6)
+
+plt.title('Estimated number of clusters: %d' % n_clusters_)
+plt.show()
+
+#Seeing the counts of the users in each clusters
+unique, counts = np.unique(labels, return_counts=True)
+
+print np.asarray((unique, counts)).T
+
+#Feature Selection
+#Using a decision tree regressor to see the relevance of the variable emotional tone
+data_NoTone = data.drop(['Tone'], axis=1)
+data_tone = data[['Tone']]
+
+from sklearn.cross_validation import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(data_NoTone, data_tone, test_size = 0.25, random_state = 5)
+
+from sklearn import tree
+regressor = tree.DecisionTreeRegressor(random_state = 5)
+regressor.fit(X_train, y_train)
+
+predict = regressor.predict(X_test)
+score = regressor.score(X_test, y_test)
+print(score)
+
+#Applying Principal Component Analysis
+sum_vars = ['Analytic', 'Clout', 'Authentic', 'Tone']
+good_data = data[sum_vars]
+
+sum_vars = ['Analytic', 'Clout', 'Authentic', 'Tone']
+good_data = data[sum_vars]
+from sklearn.decomposition import PCA
+pca = PCA(n_components=4)
+pca.fit(good_data)
+
+#Showing the PCA results
+pca_results(good_data, pca)
+
+#Using the PCA reduced data
+pca = PCA(n_components = 2)
+pca.fit(good_data)
+
+reduced_data = pca.transform(good_data)
+pca_samples = pca.transform(log_samples)
+reduced_data = pd.DataFrame(reduced_data, columns = ['Dimension 1', 'Dimension 2'])
+
+#Clustering the users using the reduced PCA datset with the DBSCAN algorithm
+X = StandardScaler().fit_transform(reduced_data)
+
+db = DBSCAN(eps=0.5).fit(X)
+core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+core_samples_mask[db.core_sample_indices_] = True
+labels = db.labels_
+
+# Number of clusters in labels, ignoring noise if present.
+n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+n_clusters_
+
+unique, counts = np.unique(labels, return_counts=True)
+
+unique_counts = np.asarray((unique, counts)).T
+
+print unique_counts[:,1:]
